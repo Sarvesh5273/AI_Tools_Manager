@@ -31,6 +31,8 @@ const AIToolCard: React.FC<AIToolCardProps> = ({ tool, onToggleFavorite, onIncre
     if (window.confirm(`Are you sure you want to delete "${tool.name}"? This action cannot be undone.`)) {
       onDeleteTool(tool.id);
     }
+      onDeleteTool(tool.id);
+    }
     setShowActions(false);
   };
 

@@ -56,27 +56,36 @@ const EditToolForm: React.FC<EditToolFormProps> = ({ toolToEdit, onUpdateTool, o
 
     setIsSubmitting(true);
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      const tags = formData.tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
 
-    const tags = formData.tags
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
+      const updatedTool: AITool = {
+        ...toolToEdit,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        link: formData.link.trim(),
+        category: formData.category.trim(),
+        tags,
+        imageUrl: formData.imageUrl.trim() || undefined
+      };
 
-    const updatedTool: AITool = {
-      ...toolToEdit,
-      name: formData.name.trim(),
-      description: formData.description.trim(),
-      link: formData.link.trim(),
-      category: formData.category.trim(),
-      tags,
-      imageUrl: formData.imageUrl.trim() || undefined
-    };
+      await onUpdateTool(updatedTool);
+      
+      // Form will be closed by the parent component after successful update
 
-    onUpdateTool(updatedTool);
-    setIsSubmitting(false);
-    onClose();
+      await onUpdateTool(updatedTool);
+      
+      // Form will be closed by the parent component after successful update
+    } catch (err) {
+      console.error('Failed to update tool:', err);
+      // You could show an error message here
+      // You could show an error message here
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {

@@ -61,25 +61,20 @@ const AddToolForm: React.FC<AddToolFormProps> = ({ onAddTool, onClose }) => {
 
     setIsSubmitting(true);
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      const tags = formData.tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+      // Form will be closed by the parent component after successful addition
 
-    const tags = formData.tags
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
-
-    onAddTool({
-      name: formData.name.trim(),
-      description: formData.description.trim(),
-      link: formData.link.trim(),
-      category: formData.category.trim(),
-      tags,
-      imageUrl: formData.imageUrl.trim() || undefined
-    });
-
-    setIsSubmitting(false);
-    onClose();
+      // Form will be closed by the parent component after successful addition
+    } catch (err) {
+      console.error('Failed to add tool:', err);
+      // You could show an error message here
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
