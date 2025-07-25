@@ -22,16 +22,6 @@ function AppContent() {
     incrementUsage
   } = useAITools();
   
-    aiTools,
-    loading,
-    error,
-    addTool,
-    updateTool,
-    deleteTool,
-    toggleFavorite,
-    incrementUsage
-  } = useAITools();
-  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showFavorites, setShowFavorites] = useState(false);
@@ -96,14 +86,8 @@ function AppContent() {
       console.error('Failed to toggle favorite:', err);
       // You could add a toast notification here
     }
-      console.error('Failed to toggle favorite:', err);
-      // You could add a toast notification here
-    }
   };
 
-  const handleIncrementUsage = async (id: string) => {
-    try {
-      await incrementUsage(id);
   const handleIncrementUsage = async (id: string) => {
     try {
       await incrementUsage(id);
@@ -129,6 +113,8 @@ function AppContent() {
       // You could add a toast notification here
       throw err; // Re-throw to let the form handle the error
     }
+  };
+
   const handleEditTool = (tool: AITool) => {
     setEditingTool(tool);
     setShowEditToolForm(true);
@@ -142,12 +128,6 @@ function AppContent() {
     } catch (err) {
       console.error('Failed to update tool:', err);
     }
-      setEditingTool(null);
-    } catch (err) {
-      console.error('Failed to update tool:', err);
-    }
-    setShowEditToolForm(false);
-    setEditingTool(null);
   };
 
   const handleDeleteTool = async (id: string) => {
@@ -156,60 +136,8 @@ function AppContent() {
     } catch (err) {
       console.error('Failed to delete tool:', err);
       // You could add a toast notification here
-    } catch (err) {
-      console.error('Failed to delete tool:', err);
-      // You could add a toast notification here
     }
   };
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen transition-colors duration-700">
-        <AnimatedBackground />
-        <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center py-16">
-            <div className="text-center">
-              <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Loading AI Tools...
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Please wait while we fetch your tools from the database.
-              </p>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen transition-colors duration-700">
-        <AnimatedBackground />
-        <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center py-16">
-            <div className="text-center">
-              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Failed to Load Tools
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {error}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Please check your Supabase configuration and try again.
-              </p>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   // Show loading state
   if (loading) {
