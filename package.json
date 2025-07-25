@@ -1,9 +1,4 @@
 {
-  "scripts": {
-  "predeploy": "vite build",
-  "deploy": "gh-pages -d dist"
-}
-
   "name": "vite-react-typescript-starter",
   "private": true,
   "version": "0.0.0",
@@ -12,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "vite build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
