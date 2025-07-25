@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase, transformDatabaseTool, transformAppTool, DatabaseAITool } from '../lib/supabase';
+import { supabase, transformDatabaseTool, transformAppTool, DatabaseAITool, isSupabaseConfigured } from '../lib/supabase';
 import { AITool } from '../types';
+import { mockAITools } from '../data/mockData';
 
 export const useAITools = () => {
   const [aiTools, setAiTools] = useState<AITool[]>([]);
@@ -13,6 +14,14 @@ export const useAITools = () => {
       setLoading(true);
       setError(null);
       
+      // If Supabase is not configured, use mock data
+      if (!isSupabaseConfigured) {
+        console.warn('Using mock data - Supabase not configured');
+        setAiTools(mockAITools);
+        setLoading(false);
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
         .from('ai_tools')
         .select('*')
@@ -26,7 +35,10 @@ export const useAITools = () => {
       setAiTools(transformedTools);
     } catch (err) {
       console.error('Error fetching tools:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch tools');
+      // Fallback to mock data if database fails
+      console.warn('Database error, falling back to mock data');
+      setAiTools(mockAITools);
+      setError('Using local data - database connection failed');
     } finally {
       setLoading(false);
     }
@@ -42,6 +54,19 @@ export const useAITools = () => {
     imageUrl?: string;
   }) => {
     try {
+      // If Supabase is not configured, add to local state only
+      if (!isSupabaseConfigured) {
+        const newTool: AITool = {
+          id: Date.now().toString(),
+          ...toolData,
+          usageCount: 0,
+          isFavorite: false,
+          addedDate: new Date().toISOString().split('T')[0]
+        };
+        setAiTools(prev => [newTool, ...prev]);
+        return newTool;
+      }
+
       const newTool = transformAppTool({
         ...toolData,
         usageCount: 0,
@@ -72,6 +97,14 @@ export const useAITools = () => {
   // Update an existing tool
   const updateTool = async (updatedTool: AITool) => {
     try {
+      // If Supabase is not configured, update local state only
+      if (!isSupabaseConfigured) {
+        setAiTools(prev => prev.map(tool => 
+          tool.id === updatedTool.id ? updatedTool : tool
+        ));
+        return updatedTool;
+      }
+
       const dbTool = transformAppTool(updatedTool);
 
       const { data, error: updateError } = await supabase
@@ -100,6 +133,12 @@ export const useAITools = () => {
   // Delete a tool
   const deleteTool = async (id: string) => {
     try {
+      // If Supabase is not configured, delete from local state only
+      if (!isSupabaseConfigured) {
+        setAiTools(prev => prev.filter(tool => tool.id !== id));
+        return;
+      }
+
       const { error: deleteError } = await supabase
         .from('ai_tools')
         .delete()
@@ -121,6 +160,14 @@ export const useAITools = () => {
     try {
       const tool = aiTools.find(t => t.id === id);
       if (!tool) return;
+
+      // If Supabase is not configured, update local state only
+      if (!isSupabaseConfigured) {
+        setAiTools(prev => prev.map(t => 
+          t.id === id ? { ...t, isFavorite: !t.isFavorite } : t
+        ));
+        return;
+      }
 
       const { data, error: updateError } = await supabase
         .from('ai_tools')
@@ -148,6 +195,14 @@ export const useAITools = () => {
     try {
       const tool = aiTools.find(t => t.id === id);
       if (!tool) return;
+
+      // If Supabase is not configured, update local state only
+      if (!isSupabaseConfigured) {
+        setAiTools(prev => prev.map(t => 
+          t.id === id ? { ...t, usageCount: t.usageCount + 1 } : t
+        ));
+        return;
+      }
 
       const { data, error: updateError } = await supabase
         .from('ai_tools')
