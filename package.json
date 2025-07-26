@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://sarvesh5273.github.io/AI_Tools_Manager",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
