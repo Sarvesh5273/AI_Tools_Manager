@@ -26,8 +26,7 @@ jobs:
 
       - name: Build with Supabase Env Vars
         run: npm run build
-        env:
-          SUPABASE_ANON_KEY: REMOVED
+        
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
