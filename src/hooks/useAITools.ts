@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase, transformDatabaseTool, transformAppTool, DatabaseAITool } from '../lib/supabase';
+import { supabase, transformDatabaseTool, transformAppTool, DatabaseAITool, isSupabaseConfigured, supabaseConnectionError } from '../lib/supabase';
+import { mockAITools } from '../data/mockData';
 import { AITool } from '../types';
 
 export const useAITools = () => {
@@ -7,27 +8,49 @@ export const useAITools = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch all tools from Supabase
+  // Fetch all tools from Supabase or use mock data
   const fetchTools = async () => {
     try {
       setLoading(true);
       setError(null);
       
+      // Check if there's a Supabase connection error
+      if (supabaseConnectionError) {
+        console.warn('Using mock data due to Supabase connection issue:', supabaseConnectionError);
+        setAiTools(mockAITools);
+        setError(`Using local data - ${supabaseConnectionError}`);
+        return;
+      }
+
+      // If Supabase is not configured, use mock data
+      if (!isSupabaseConfigured) {
+        console.warn('Using mock data - Supabase not configured');
+        setAiTools(mockAITools);
+        setError('Using local data - database connection not configured');
+        return;
+      }
+
+      // Try to fetch from Supabase
       const { data, error: fetchError } = await supabase
         .from('ai_tools')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (fetchError) {
-        throw fetchError;
+        console.warn('Database fetch failed, falling back to mock data:', fetchError);
+        setAiTools(mockAITools);
+        setError(`Using local data - database connection failed: ${fetchError.message}`);
+        return;
       }
 
       const transformedTools = data?.map(transformDatabaseTool) || [];
       setAiTools(transformedTools);
+      console.log('Successfully loaded tools from database');
     } catch (err) {
-      console.error('Error fetching tools:', err);
-      setError(`Failed to fetch tools: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      setAiTools([]);
+      console.error('Error in fetchTools:', err);
+      console.warn('Falling back to mock data due to error');
+      setAiTools(mockAITools);
+      setError(`Using local data - ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -43,6 +66,26 @@ export const useAITools = () => {
     imageUrl?: string;
   }) => {
     try {
+      // If Supabase is not configured, add to local state only
+      if (!isSupabaseConfigured || supabaseConnectionError) {
+        const newTool: AITool = {
+          id: Date.now().toString(),
+          name: toolData.name,
+          description: toolData.description,
+          link: toolData.link,
+          category: toolData.category,
+          tags: toolData.tags,
+          usageCount: 0,
+          isFavorite: false,
+          addedDate: new Date().toISOString().split('T')[0],
+          imageUrl: toolData.imageUrl
+        };
+        
+        setAiTools(prev => [newTool, ...prev]);
+        console.warn('Tool added to local state only - database not available');
+        return newTool;
+      }
+
       const newTool = transformAppTool({
         ...toolData,
         usageCount: 0,
@@ -73,6 +116,15 @@ export const useAITools = () => {
   // Update an existing tool
   const updateTool = async (updatedTool: AITool) => {
     try {
+      // If Supabase is not configured, update local state only
+      if (!isSupabaseConfigured || supabaseConnectionError) {
+        setAiTools(prev => prev.map(tool => 
+          tool.id === updatedTool.id ? updatedTool : tool
+        ));
+        console.warn('Tool updated in local state only - database not available');
+        return updatedTool;
+      }
+
       const dbTool = transformAppTool(updatedTool);
 
       const { data, error: updateError } = await supabase
@@ -101,6 +153,13 @@ export const useAITools = () => {
   // Delete a tool
   const deleteTool = async (id: string) => {
     try {
+      // If Supabase is not configured, delete from local state only
+      if (!isSupabaseConfigured || supabaseConnectionError) {
+        setAiTools(prev => prev.filter(tool => tool.id !== id));
+        console.warn('Tool deleted from local state only - database not available');
+        return;
+      }
+
       const { error: deleteError } = await supabase
         .from('ai_tools')
         .delete()
@@ -122,6 +181,15 @@ export const useAITools = () => {
     try {
       const tool = aiTools.find(t => t.id === id);
       if (!tool) return;
+
+      // If Supabase is not configured, update local state only
+      if (!isSupabaseConfigured || supabaseConnectionError) {
+        setAiTools(prev => prev.map(t => 
+          t.id === id ? { ...t, isFavorite: !t.isFavorite } : t
+        ));
+        console.warn('Favorite toggled in local state only - database not available');
+        return;
+      }
 
       const { data, error: updateError } = await supabase
         .from('ai_tools')
@@ -149,6 +217,15 @@ export const useAITools = () => {
     try {
       const tool = aiTools.find(t => t.id === id);
       if (!tool) return;
+
+      // If Supabase is not configured, update local state only
+      if (!isSupabaseConfigured || supabaseConnectionError) {
+        setAiTools(prev => prev.map(t => 
+          t.id === id ? { ...t, usageCount: t.usageCount + 1 } : t
+        ));
+        console.warn('Usage count updated in local state only - database not available');
+        return;
+      }
 
       const { data, error: updateError } = await supabase
         .from('ai_tools')

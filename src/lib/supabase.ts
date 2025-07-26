@@ -1,22 +1,57 @@
 import { createClient } from '@supabase/supabase-js';
+import { mockAITools } from '../data/mockData';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Validate environment variables
-if (!supabaseUrl) {
-  throw new Error('Missing VITE_SUPABASE_URL environment variable. Please add it to your .env file.');
+// Initialize Supabase client with error handling
+let supabase: any;
+let isSupabaseConfigured = false;
+let supabaseConnectionError: string | null = null;
+
+try {
+  // Check if environment variables are properly configured
+  if (!supabaseUrl || !supabaseAnonKey || 
+      supabaseUrl === 'your-supabase-url-here' || 
+      supabaseAnonKey === 'your-supabase-anon-key-here') {
+    
+    console.warn('Supabase environment variables not configured. Using fallback values for development.');
+    isSupabaseConfigured = false;
+    supabaseConnectionError = 'Supabase not configured - using local data';
+    
+    // Create a dummy client that won't cause errors
+    supabase = {
+      from: () => ({
+        select: () => Promise.resolve({ data: [], error: null }),
+        insert: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+        update: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+        delete: () => Promise.resolve({ error: new Error('Supabase not configured') })
+      })
+    };
+  } else {
+    // Try to create the actual Supabase client
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+    isSupabaseConfigured = true;
+    console.log('Supabase client initialized successfully');
+  }
+} catch (error) {
+  console.error('Failed to initialize Supabase client:', error);
+  supabaseConnectionError = `Supabase initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  isSupabaseConfigured = false;
+  
+  // Create a dummy client that won't cause errors
+  supabase = {
+    from: () => ({
+      select: () => Promise.resolve({ data: [], error: null }),
+      insert: () => Promise.resolve({ data: null, error: new Error('Supabase initialization failed') }),
+      update: () => Promise.resolve({ data: null, error: new Error('Supabase initialization failed') }),
+      delete: () => Promise.resolve({ error: new Error('Supabase initialization failed') })
+    })
+  };
 }
 
-if (!supabaseAnonKey) {
-  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable. Please add it to your .env file.');
-}
-
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Export a flag to check if Supabase is properly configured
-export const isSupabaseConfigured = true;
+// Export the client and configuration status
+export { supabase, isSupabaseConfigured, supabaseConnectionError };
 
 // Database types
 export interface DatabaseAITool {
