@@ -5,6 +5,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    @apply transition-colors duration-700;
   }
   
   body {
@@ -63,13 +64,6 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-400 dark:bg-gray-500;
-}
-
-/* Smooth transitions for theme switching */
-* {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-duration: 200ms;
-  transition-timing-function: ease-in-out;
 }
 
 /* Improve focus accessibility */
