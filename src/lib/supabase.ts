@@ -40,10 +40,26 @@ try {
     try {
       new URL(supabaseUrl);
       
-      // Create the actual Supabase client
-      tempSupabase = createClient(supabaseUrl, supabaseAnonKey);
-      tempIsConfigured = true;
-      console.log('Supabase client initialized successfully');
+      // Try to create the actual Supabase client
+      try {
+        tempSupabase = createClient(supabaseUrl, supabaseAnonKey);
+        tempIsConfigured = true;
+        console.log('Supabase client initialized successfully');
+      } catch (clientError) {
+        console.warn('Failed to create Supabase client:', clientError);
+        tempIsConfigured = false;
+        tempConnectionError = `Supabase client creation failed: ${clientError instanceof Error ? clientError.message : 'Unknown error'}`;
+        
+        // Create a dummy client that won't cause errors
+        tempSupabase = {
+          from: () => ({
+            select: () => Promise.resolve({ data: [], error: null }),
+            insert: () => Promise.resolve({ data: null, error: new Error('Supabase client creation failed') }),
+            update: () => Promise.resolve({ data: null, error: new Error('Supabase client creation failed') }),
+            delete: () => Promise.resolve({ error: new Error('Supabase client creation failed') })
+          })
+        };
+      }
     } catch (urlError) {
       console.warn('Invalid Supabase URL format. Using fallback values for development.');
       tempIsConfigured = false;
