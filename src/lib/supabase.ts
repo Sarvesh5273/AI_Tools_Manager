@@ -9,6 +9,11 @@ let supabase: any;
 let isSupabaseConfigured = false;
 let supabaseConnectionError: string | null = null;
 
+// Temporary variables for initialization
+let tempSupabase: any;
+let tempIsConfigured = false;
+let tempConnectionError: string | null = null;
+
 try {
   // Check if environment variables are properly configured
   if (!supabaseUrl || !supabaseAnonKey || 
@@ -18,11 +23,11 @@ try {
       supabaseAnonKey.trim() === '') {
     
     console.warn('Supabase environment variables not configured. Using fallback values for development.');
-    isSupabaseConfigured = false;
-    supabaseConnectionError = 'Supabase not configured - using local data';
+    tempIsConfigured = false;
+    tempConnectionError = 'Supabase not configured - using local data';
     
     // Create a dummy client that won't cause errors
-    supabase = {
+    tempSupabase = {
       from: () => ({
         select: () => Promise.resolve({ data: [], error: null }),
         insert: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
@@ -36,11 +41,11 @@ try {
       new URL(supabaseUrl);
     } catch (urlError) {
       console.warn('Invalid Supabase URL format. Using fallback values for development.');
-      isSupabaseConfigured = false;
-      supabaseConnectionError = 'Invalid Supabase URL format - using local data';
+      tempIsConfigured = false;
+      tempConnectionError = 'Invalid Supabase URL format - using local data';
       
       // Create a dummy client that won't cause errors
-      supabase = {
+      tempSupabase = {
         from: () => ({
           select: () => Promise.resolve({ data: [], error: null }),
           insert: () => Promise.resolve({ data: null, error: new Error('Invalid Supabase URL') }),
@@ -48,21 +53,22 @@ try {
           delete: () => Promise.resolve({ error: new Error('Invalid Supabase URL') })
         })
       };
-      return;
     }
     
     // Try to create the actual Supabase client
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
-    isSupabaseConfigured = true;
-    console.log('Supabase client initialized successfully');
+    else {
+      tempSupabase = createClient(supabaseUrl, supabaseAnonKey);
+      tempIsConfigured = true;
+      console.log('Supabase client initialized successfully');
+    }
   }
 } catch (error) {
   console.error('Failed to initialize Supabase client:', error);
-  supabaseConnectionError = `Supabase initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
-  isSupabaseConfigured = false;
+  tempConnectionError = `Supabase initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  tempIsConfigured = false;
   
   // Create a dummy client that won't cause errors
-  supabase = {
+  tempSupabase = {
     from: () => ({
       select: () => Promise.resolve({ data: [], error: null }),
       insert: () => Promise.resolve({ data: null, error: new Error('Supabase initialization failed') }),
@@ -71,6 +77,11 @@ try {
     })
   };
 }
+
+// Assign temporary values to module-scoped variables
+supabase = tempSupabase;
+isSupabaseConfigured = tempIsConfigured;
+supabaseConnectionError = tempConnectionError;
 
 // Export the client and configuration status
 export { supabase, isSupabaseConfigured, supabaseConnectionError };
