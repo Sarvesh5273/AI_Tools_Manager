@@ -19,7 +19,6 @@ export const useAITools = () => {
       
       // If not authenticated or Supabase not configured, use mock data
       if (!shouldFetchFromDatabase) {
-        const reason = !isAuthenticated 
         const reason = supabaseConnectionError || 'Supabase not configured';
         console.warn('Using mock data:', reason);
         setAiTools(mockAITools);
