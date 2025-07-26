@@ -13,13 +13,27 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build with Supabase Env Vars
+        run: npm run build
+        env:
+          SUPABASE_URL:REMOVED
+          SUPABASE_ANON_KEY: REMOVED
+
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
-      - uses: actions/deploy-pages@v4
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
