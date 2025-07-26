@@ -24,26 +24,6 @@ function AppContent() {
     return <AuthCallback />;
   }
   
-  // Show loading while checking authentication
-  if (authLoading) {
-    return (
-      <div className="min-h-screen transition-colors duration-700">
-        <AnimatedBackground />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Loading...
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Checking authentication status
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
   // Show login page if not authenticated
   if (!isAuthenticated) {
     return <LoginPage />;
