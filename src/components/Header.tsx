@@ -87,12 +87,3 @@ const Header: React.FC = () => {
 };
 
 export default Header;
-            </div>
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-};
-
-export default Header;
