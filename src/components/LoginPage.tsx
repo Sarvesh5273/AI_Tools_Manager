@@ -53,8 +53,17 @@ const LoginPage: React.FC = () => {
       setLoading('email-signup');
       setError(null);
       setMessage(null);
-      await signUpWithEmailAndPassword(email, password);
-      setMessage('Check your email for a verification link to complete your registration.');
+      const result = await signUpWithEmailAndPassword(email, password);
+      setMessage(result.message);
+      
+      // If the email already exists and user is confirmed, suggest signing in
+      if (!result.isNewUser && result.message.includes('already exists and is verified')) {
+        setTimeout(() => {
+          setIsSignUp(false);
+          setError(null);
+          setMessage(null);
+        }, 3000);
+      }
     } catch (err: any) {
       console.error('Email sign-up failed:', err);
       setError(err.message || 'Failed to sign up. Please try again.');

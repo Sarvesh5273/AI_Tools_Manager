@@ -9,7 +9,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithGitHub: () => Promise<void>;
-  signUpWithEmailAndPassword: (email: string, password: string) => Promise<void>;
+  signUpWithEmailAndPassword: (email: string, password: string) => Promise<{ isNewUser: boolean; message: string }>;
   signInWithEmailAndPassword: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -126,14 +126,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUpWithEmailAndPassword = async (email: string, password: string) => {
+  const signUpWithEmailAndPassword = async (email: string, password: string): Promise<{ isNewUser: boolean; message: string }> => {
     if (!isSupabaseConfigured) {
       console.warn('Supabase not configured - cannot sign up with email');
-      return;
+      return {
+        isNewUser: false,
+        message: 'Authentication service not configured'
+      };
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -144,6 +147,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('Error signing up with email:', error);
         throw error;
+      }
+      
+      // Check if a new user was created or if the email already exists
+      if (data.user && data.user.email_confirmed_at === null) {
+        // New user created, needs email confirmation
+        return {
+          isNewUser: true,
+          message: 'Check your email for a verification link to complete your registration.'
+        };
+      } else if (!data.user && !error) {
+        // Email already exists, Supabase sent a magic link but didn't create a new user
+        return {
+          isNewUser: false,
+          message: 'If an account with this email exists, a verification link has been sent to your email address. Please check your inbox and spam folder.'
+        };
+      } else if (data.user && data.user.email_confirmed_at !== null) {
+        // User already exists and is confirmed
+        return {
+          isNewUser: false,
+          message: 'An account with this email already exists and is verified. Please sign in instead.'
+        };
+      } else {
+        // Fallback message
+        return {
+          isNewUser: true,
+          message: 'Check your email for a verification link to complete your registration.'
+        };
       }
     } catch (error) {
       console.error('Email sign-up error:', error);
