@@ -9,6 +9,8 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithGitHub: () => Promise<void>;
+  signUpWithEmailAndPassword: (email: string, password: string) => Promise<void>;
+  signInWithEmailAndPassword: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -124,6 +126,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signUpWithEmailAndPassword = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase not configured - cannot sign up with email');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) {
+        console.error('Error signing up with email:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Email sign-up error:', error);
+      throw error;
+    }
+  };
+
+  const signInWithEmailAndPassword = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase not configured - cannot sign in with email');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        console.error('Error signing in with email:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Email sign-in error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     session,
@@ -131,6 +180,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signInWithGoogle,
     signInWithGitHub,
+    signUpWithEmailAndPassword,
+    signInWithEmailAndPassword,
     signOut
   };
 
