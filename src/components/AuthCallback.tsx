@@ -9,24 +9,34 @@ const AuthCallback: React.FC = () => {
   const [message, setMessage] = useState('Processing authentication...');
 
   useEffect(() => {
+    // Check for GitHub cancel error from hash params
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const error = params.get('error');
+    const errorDescription = params.get('error_description');
+
+    if (error === 'access_denied') {
+      setStatus('error');
+      setMessage('You cancelled the login. Redirecting to login page...');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 3000);
+      return;
+    }
+
+    // Otherwise proceed with user check
     const handleAuthCallback = async () => {
       try {
-        // Wait a moment for the auth state to update
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
+        await new Promise(resolve => setTimeout(resolve, 2000)); // wait for auth state update
         if (user) {
           setStatus('success');
           setMessage('Authentication successful! Redirecting...');
-          
-          // Redirect to main app after a short delay
           setTimeout(() => {
             window.location.href = '/';
           }, 1500);
         } else if (!loading) {
           setStatus('error');
           setMessage('Authentication failed. Please try again.');
-          
-          // Redirect to login after a delay
           setTimeout(() => {
             window.location.href = '/';
           }, 3000);
@@ -35,7 +45,6 @@ const AuthCallback: React.FC = () => {
         console.error('Auth callback error:', error);
         setStatus('error');
         setMessage('An error occurred during authentication.');
-        
         setTimeout(() => {
           window.location.href = '/';
         }, 3000);
@@ -70,24 +79,21 @@ const AuthCallback: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center transition-colors duration-700">
       <AnimatedBackground />
-      
       <div className="relative z-10 max-w-md w-full mx-4">
         <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8">
           <div className="text-center">
             <div className="flex items-center justify-center mb-6">
               {getIcon()}
             </div>
-            
             <h1 className={`text-2xl font-bold mb-4 ${getStatusColor()}`}>
               {status === 'loading' && 'Authenticating...'}
               {status === 'success' && 'Welcome!'}
               {status === 'error' && 'Authentication Failed'}
             </h1>
-            
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               {message}
             </p>
-            
+
             {status === 'loading' && (
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
@@ -95,7 +101,7 @@ const AuthCallback: React.FC = () => {
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             )}
-            
+
             {status === 'success' && user && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
                 <p className="text-sm text-green-700 dark:text-green-400">
@@ -103,7 +109,7 @@ const AuthCallback: React.FC = () => {
                 </p>
               </div>
             )}
-            
+
             {status === 'error' && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
                 <p className="text-sm text-red-700 dark:text-red-400">
