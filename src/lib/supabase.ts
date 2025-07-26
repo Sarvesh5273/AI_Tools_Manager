@@ -57,13 +57,6 @@ try {
     console.log('Supabase client initialized successfully');
   }
 } catch (error) {
-  } else {
-    // Try to create the actual Supabase client
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
-    isSupabaseConfigured = true;
-    console.log('Supabase client initialized successfully');
-  }
-} catch (error) {
   console.error('Failed to initialize Supabase client:', error);
   supabaseConnectionError = `Supabase initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
   isSupabaseConfigured = false;
