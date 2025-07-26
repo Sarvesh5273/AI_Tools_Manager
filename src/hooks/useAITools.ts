@@ -2,11 +2,16 @@ import { useState, useEffect } from 'react';
 import { supabase, transformDatabaseTool, transformAppTool, DatabaseAITool, isSupabaseConfigured, supabaseConnectionError } from '../lib/supabase';
 import { mockAITools } from '../data/mockData';
 import { AITool } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 export const useAITools = () => {
+  const { isAuthenticated } = useAuth();
   const [aiTools, setAiTools] = useState<AITool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Only fetch tools if user is authenticated
+  const shouldFetchFromDatabase = isAuthenticated && isSupabaseConfigured && !supabaseConnectionError;
 
   // Fetch all tools from Supabase or use mock data
   const fetchTools = async () => {
@@ -14,19 +19,14 @@ export const useAITools = () => {
       setLoading(true);
       setError(null);
       
-      // Check if there's a Supabase connection error
-      if (supabaseConnectionError) {
-        console.warn('Using mock data due to Supabase connection issue:', supabaseConnectionError);
+      // If not authenticated or Supabase not configured, use mock data
+      if (!shouldFetchFromDatabase) {
+        const reason = !isAuthenticated 
+          ? 'User not authenticated' 
+          : supabaseConnectionError || 'Supabase not configured';
+        console.warn('Using mock data:', reason);
         setAiTools(mockAITools);
-        setError(`Using local data - ${supabaseConnectionError}`);
-        return;
-      }
-
-      // If Supabase is not configured, use mock data
-      if (!isSupabaseConfigured) {
-        console.warn('Using mock data - Supabase not configured');
-        setAiTools(mockAITools);
-        setError('Using local data - database connection not configured');
+        setError(`Using local data - ${reason}`);
         return;
       }
 
@@ -66,8 +66,8 @@ export const useAITools = () => {
     imageUrl?: string;
   }) => {
     try {
-      // If Supabase is not configured, add to local state only
-      if (!isSupabaseConfigured || supabaseConnectionError) {
+      // If not authenticated or Supabase not configured, add to local state only
+      if (!shouldFetchFromDatabase) {
         const newTool: AITool = {
           id: Date.now().toString(),
           name: toolData.name,
@@ -82,7 +82,7 @@ export const useAITools = () => {
         };
         
         setAiTools(prev => [newTool, ...prev]);
-        console.warn('Tool added to local state only - database not available');
+        console.warn('Tool added to local state only - not authenticated or database not available');
         return newTool;
       }
 
@@ -116,12 +116,12 @@ export const useAITools = () => {
   // Update an existing tool
   const updateTool = async (updatedTool: AITool) => {
     try {
-      // If Supabase is not configured, update local state only
-      if (!isSupabaseConfigured || supabaseConnectionError) {
+      // If not authenticated or Supabase not configured, update local state only
+      if (!shouldFetchFromDatabase) {
         setAiTools(prev => prev.map(tool => 
           tool.id === updatedTool.id ? updatedTool : tool
         ));
-        console.warn('Tool updated in local state only - database not available');
+        console.warn('Tool updated in local state only - not authenticated or database not available');
         return updatedTool;
       }
 
@@ -153,10 +153,10 @@ export const useAITools = () => {
   // Delete a tool
   const deleteTool = async (id: string) => {
     try {
-      // If Supabase is not configured, delete from local state only
-      if (!isSupabaseConfigured || supabaseConnectionError) {
+      // If not authenticated or Supabase not configured, delete from local state only
+      if (!shouldFetchFromDatabase) {
         setAiTools(prev => prev.filter(tool => tool.id !== id));
-        console.warn('Tool deleted from local state only - database not available');
+        console.warn('Tool deleted from local state only - not authenticated or database not available');
         return;
       }
 
@@ -182,12 +182,12 @@ export const useAITools = () => {
       const tool = aiTools.find(t => t.id === id);
       if (!tool) return;
 
-      // If Supabase is not configured, update local state only
-      if (!isSupabaseConfigured || supabaseConnectionError) {
+      // If not authenticated or Supabase not configured, update local state only
+      if (!shouldFetchFromDatabase) {
         setAiTools(prev => prev.map(t => 
           t.id === id ? { ...t, isFavorite: !t.isFavorite } : t
         ));
-        console.warn('Favorite toggled in local state only - database not available');
+        console.warn('Favorite toggled in local state only - not authenticated or database not available');
         return;
       }
 
@@ -218,12 +218,12 @@ export const useAITools = () => {
       const tool = aiTools.find(t => t.id === id);
       if (!tool) return;
 
-      // If Supabase is not configured, update local state only
-      if (!isSupabaseConfigured || supabaseConnectionError) {
+      // If not authenticated or Supabase not configured, update local state only
+      if (!shouldFetchFromDatabase) {
         setAiTools(prev => prev.map(t => 
           t.id === id ? { ...t, usageCount: t.usageCount + 1 } : t
         ));
-        console.warn('Usage count updated in local state only - database not available');
+        console.warn('Usage count updated in local state only - not authenticated or database not available');
         return;
       }
 
@@ -251,7 +251,7 @@ export const useAITools = () => {
   // Initialize data on mount
   useEffect(() => {
     fetchTools();
-  }, []);
+  }, [isAuthenticated]);
 
   return {
     aiTools,
