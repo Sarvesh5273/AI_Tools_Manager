@@ -3,21 +3,20 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase environment variables not configured. Using fallback values for development.');
+// Validate environment variables
+if (!supabaseUrl) {
+  throw new Error('Missing VITE_SUPABASE_URL environment variable. Please add it to your .env file.');
 }
 
-// Use fallback values if environment variables are not set
-const fallbackUrl = 'https://placeholder.supabase.co';
-const fallbackKey = 'placeholder-anon-key';
+if (!supabaseAnonKey) {
+  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable. Please add it to your .env file.');
+}
 
-export const supabase = createClient(
-  supabaseUrl || fallbackUrl,
-  supabaseAnonKey || fallbackKey
-);
+// Create Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Export a flag to check if Supabase is properly configured
-export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = true;
 
 // Database types
 export interface DatabaseAITool {
