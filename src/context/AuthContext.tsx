@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/#/auth/callback`
         }
       });
       
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/#/auth/callback`
         }
       });
       
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailredirectTo: `${window.location.origin}/#/auth/callback`
         }
       });
       
