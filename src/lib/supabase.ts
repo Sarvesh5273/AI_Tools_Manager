@@ -39,6 +39,11 @@ try {
     // Validate URL format before attempting to create client
     try {
       new URL(supabaseUrl);
+      
+      // Create the actual Supabase client
+      tempSupabase = createClient(supabaseUrl, supabaseAnonKey);
+      tempIsConfigured = true;
+      console.log('Supabase client initialized successfully');
     } catch (urlError) {
       console.warn('Invalid Supabase URL format. Using fallback values for development.');
       tempIsConfigured = false;
@@ -53,13 +58,6 @@ try {
           delete: () => Promise.resolve({ error: new Error('Invalid Supabase URL') })
         })
       };
-    }
-    
-    // Try to create the actual Supabase client
-    else {
-      tempSupabase = createClient(supabaseUrl, supabaseAnonKey);
-      tempIsConfigured = true;
-      console.log('Supabase client initialized successfully');
     }
   }
 } catch (error) {
