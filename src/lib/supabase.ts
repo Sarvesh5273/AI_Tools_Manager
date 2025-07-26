@@ -13,7 +13,9 @@ try {
   // Check if environment variables are properly configured
   if (!supabaseUrl || !supabaseAnonKey || 
       supabaseUrl === 'your-supabase-url-here' || 
-      supabaseAnonKey === 'your-supabase-anon-key-here') {
+      supabaseAnonKey === 'your-supabase-anon-key-here' ||
+      supabaseUrl.trim() === '' || 
+      supabaseAnonKey.trim() === '') {
     
     console.warn('Supabase environment variables not configured. Using fallback values for development.');
     isSupabaseConfigured = false;
@@ -28,6 +30,33 @@ try {
         delete: () => Promise.resolve({ error: new Error('Supabase not configured') })
       })
     };
+  } else {
+    // Validate URL format before attempting to create client
+    try {
+      new URL(supabaseUrl);
+    } catch (urlError) {
+      console.warn('Invalid Supabase URL format. Using fallback values for development.');
+      isSupabaseConfigured = false;
+      supabaseConnectionError = 'Invalid Supabase URL format - using local data';
+      
+      // Create a dummy client that won't cause errors
+      supabase = {
+        from: () => ({
+          select: () => Promise.resolve({ data: [], error: null }),
+          insert: () => Promise.resolve({ data: null, error: new Error('Invalid Supabase URL') }),
+          update: () => Promise.resolve({ data: null, error: new Error('Invalid Supabase URL') }),
+          delete: () => Promise.resolve({ error: new Error('Invalid Supabase URL') })
+        })
+      };
+      return;
+    }
+    
+    // Try to create the actual Supabase client
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+    isSupabaseConfigured = true;
+    console.log('Supabase client initialized successfully');
+  }
+} catch (error) {
   } else {
     // Try to create the actual Supabase client
     supabase = createClient(supabaseUrl, supabaseAnonKey);
