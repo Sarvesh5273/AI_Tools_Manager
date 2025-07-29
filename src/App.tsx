@@ -14,7 +14,7 @@ import { AITool, Category } from './types';
 import { Plus, Loader2, AlertCircle } from 'lucide-react';
 
 function AppContent() {
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, isAdmin } = useAuth();
   
   // Check if we're on the auth callback route
   const isAuthCallback = window.location.pathname === '/auth/callback';
@@ -246,13 +246,15 @@ function MainApp() {
             )}
           </div>
           
-          <button
-            onClick={() => setShowAddToolForm(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            <Plus className="w-5 h-5" />
-            Add Tool
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowAddToolForm(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <Plus className="w-5 h-5" />
+              Add Tool
+            </button>
+          )}
         </div>
 
         {/* Tools Grid */}
@@ -280,8 +282,8 @@ function MainApp() {
                   tool={tool}
                   onToggleFavorite={handleToggleFavorite}
                   onIncrementUsage={handleIncrementUsage}
-                  onEditTool={handleEditTool}
-                  onDeleteTool={handleDeleteTool}
+                  onEditTool={isAdmin ? handleEditTool : undefined}
+                  onDeleteTool={isAdmin ? handleDeleteTool : undefined}
                 />
               </div>
             ))}
@@ -290,7 +292,7 @@ function MainApp() {
       </main>
 
       {/* Add Tool Form Modal */}
-      {showAddToolForm && (
+      {isAdmin && showAddToolForm && (
         <AddToolForm
           onAddTool={handleAddTool}
           onClose={() => setShowAddToolForm(false)}
@@ -298,7 +300,7 @@ function MainApp() {
       )}
 
       {/* Edit Tool Form Modal */}
-      {showEditToolForm && editingTool && (
+      {isAdmin && showEditToolForm && editingTool && (
         <EditToolForm
           toolToEdit={editingTool}
           onUpdateTool={handleUpdateTool}
