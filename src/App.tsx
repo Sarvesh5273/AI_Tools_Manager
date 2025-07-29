@@ -280,8 +280,9 @@ function MainApp() {
                   tool={tool}
                   onToggleFavorite={handleToggleFavorite}
                   onIncrementUsage={handleIncrementUsage}
-                  onEditTool={handleEditTool}
-                  onDeleteTool={handleDeleteTool}
+                  // Only show edit and delete options for admin users
+                  onEditTool={isAuthenticated && userRole === 'admin' ? handleEditTool : undefined}
+                  onDeleteTool={isAuthenticated && userRole === 'admin' ? handleDeleteTool : undefined}
                 />
               </div>
             ))}
