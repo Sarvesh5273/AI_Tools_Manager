@@ -8,9 +8,10 @@ interface AIToolCardProps {
   onIncrementUsage: (id: string) => void;
   onEditTool: (tool: AITool) => void;
   onDeleteTool: (id: string) => void;
+  isAdmin: boolean;
 }
 
-const AIToolCard: React.FC<AIToolCardProps> = ({ tool, onToggleFavorite, onIncrementUsage, onEditTool, onDeleteTool }) => {
+const AIToolCard: React.FC<AIToolCardProps> = ({ tool, onToggleFavorite, onIncrementUsage, onEditTool, onDeleteTool, isAdmin }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [showActions, setShowActions] = useState(false);
@@ -75,53 +76,57 @@ const AIToolCard: React.FC<AIToolCardProps> = ({ tool, onToggleFavorite, onIncre
 
       {/* Top Action Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
-        {/* Favorite Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite(tool.id);
-          }}
-          className={`p-2 rounded-lg transition-all duration-300 ${
-            tool.isFavorite
-              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-yellow-500'
-          } hover:scale-110`}
-        >
-          <Star className={`w-4 h-4 ${tool.isFavorite ? 'fill-current' : ''}`} />
-        </button>
-
-        {/* Actions Menu */}
-        <div className="relative">
+        {/* Favorite Button - Only for Admin */}
+        {isAdmin && (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowActions(!showActions);
+              onToggleFavorite(tool.id);
             }}
-            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-300 hover:scale-110"
+            className={`p-2 rounded-lg transition-all duration-300 ${
+              tool.isFavorite
+                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-yellow-500'
+            } hover:scale-110`}
           >
-            <MoreVertical className="w-4 h-4" />
+            <Star className={`w-4 h-4 ${tool.isFavorite ? 'fill-current' : ''}`} />
           </button>
+        )}
 
-          {/* Actions Dropdown */}
-          {showActions && (
-            <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 min-w-[120px] z-10">
-              <button
-                onClick={handleEdit}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-              >
-                <Edit className="w-4 h-4" />
-                Edit
-              </button>
-              <button
-                onClick={handleDelete}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Actions Menu - Only for Admin */}
+        {isAdmin && (
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowActions(!showActions);
+              }}
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-300 hover:scale-110"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+
+            {/* Actions Dropdown */}
+            {showActions && (
+              <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 min-w-[120px] z-10">
+                <button
+                  onClick={handleEdit}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Category Badge */}
