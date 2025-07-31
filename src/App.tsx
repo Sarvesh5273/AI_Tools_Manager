@@ -34,6 +34,7 @@ function AppContent() {
 }
 
 function MainApp() {
+  const { isAdmin } = useAuth();
   const {
     aiTools,
     loading,
