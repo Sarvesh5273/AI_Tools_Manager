@@ -76,22 +76,21 @@ const AIToolCard: React.FC<AIToolCardProps> = ({ tool, onToggleFavorite, onIncre
 
       {/* Top Action Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
-        {/* Favorite Button - Only for Admin */}
-        {isAdmin && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(tool.id);
-            }}
-            className={`p-2 rounded-lg transition-all duration-300 ${
-              tool.isFavorite
-                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-yellow-500'
-            } hover:scale-110`}
-          >
-            <Star className={`w-4 h-4 ${tool.isFavorite ? 'fill-current' : ''}`} />
-          </button>
-        )}
+        {/* Favorite Button - Available for all users */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(tool.id);
+          }}
+          className={`p-2 rounded-lg transition-all duration-300 ${
+            tool.isFavorite
+              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-yellow-500'
+          } hover:scale-110`}
+          title={tool.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Star className={`w-4 h-4 ${tool.isFavorite ? 'fill-current' : ''}`} />
+        </button>
 
         {/* Actions Menu - Only for Admin */}
         {isAdmin && (
