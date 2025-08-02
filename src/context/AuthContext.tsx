@@ -6,7 +6,6 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
-  isAdmin: boolean;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithGitHub: () => Promise<void>;
@@ -20,33 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  // Function to fetch user role from user_roles table
-  const fetchUserRole = async (userId: string) => {
-    if (!isSupabaseConfigured) {
-      return false;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) {
-        console.warn('Error fetching user role:', error);
-        return false;
-      }
-
-      return data?.role === 'admin';
-    } catch (error) {
-      console.warn('Error in fetchUserRole:', error);
-      return false;
-    }
-  };
 
   useEffect(() => {
     // Only initialize auth if Supabase is configured
@@ -64,14 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setSession(session);
           setUser(session?.user ?? null);
-          
-          // Fetch user role if user exists
-          if (session?.user) {
-            const adminStatus = await fetchUserRole(session.user.id);
-            setIsAdmin(adminStatus);
-          } else {
-            setIsAdmin(false);
-          }
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
@@ -88,15 +53,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Fetch user role when auth state changes
-        if (session?.user) {
-          const adminStatus = await fetchUserRole(session.user.id);
-          setIsAdmin(adminStatus);
-        } else {
-          setIsAdmin(false);
-        }
-        
         setLoading(false);
       }
     );
@@ -251,7 +207,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     isAuthenticated: !!user,
-    isAdmin,
     loading,
     signInWithGoogle,
     signInWithGitHub,
