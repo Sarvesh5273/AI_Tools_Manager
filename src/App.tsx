@@ -246,15 +246,13 @@ function MainApp() {
             )}
           </div>
           
-          {isAdmin && (
-            <button
-              onClick={() => setShowAddToolForm(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <Plus className="w-5 h-5" />
-              Add Tool
-            </button>
-          )}
+          <button
+            onClick={() => setShowAddToolForm(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            <Plus className="w-5 h-5" />
+            Add Tool
+          </button>
         </div>
 
         {/* Tools Grid */}
@@ -284,7 +282,6 @@ function MainApp() {
                   onIncrementUsage={handleIncrementUsage}
                   onEditTool={handleEditTool}
                   onDeleteTool={handleDeleteTool}
-                  isAdmin={isAdmin}
                 />
               </div>
             ))}
