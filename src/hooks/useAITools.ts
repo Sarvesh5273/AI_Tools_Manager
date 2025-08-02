@@ -15,7 +15,12 @@ export const useAITools = () => {
 
   // Fetch user's favorite tools
   const fetchUserFavorites = async (): Promise<string[]> => {
-    if (!shouldFetchFromDatabase || !user) {
+    if (!shouldFetchFromDatabase) {
+      return [];
+    }
+
+    // If no user is logged in, return empty array (no favorites)
+    if (!user) {
       return [];
     }
 
@@ -48,7 +53,7 @@ export const useAITools = () => {
         const reason = supabaseConnectionError || 'Supabase not configured';
         console.warn('Using mock data:', reason);
         setAiTools(mockAITools);
-        setError(`Using local data - ${reason}`);
+        setError(null); // Don't show error for mock data
         return;
       }
 
@@ -61,7 +66,7 @@ export const useAITools = () => {
       if (fetchError) {
         console.warn('Database fetch failed, falling back to mock data:', fetchError);
         setAiTools(mockAITools);
-        setError(`Using local data - database connection failed: ${fetchError.message}`);
+        setError(null); // Don't show error when falling back to mock data
         return;
       }
 
@@ -82,7 +87,7 @@ export const useAITools = () => {
       console.error('Error in fetchTools:', err);
       console.warn('Falling back to mock data due to error');
       setAiTools(mockAITools);
-      setError(`Using local data - ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setError(null); // Don't show error when using fallback data
     } finally {
       setLoading(false);
     }
