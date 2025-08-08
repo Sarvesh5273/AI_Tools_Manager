@@ -10,7 +10,7 @@ export const mockAITools: AITool[] = [
     usageCount: 145,
     tags: ['writing', 'coding', 'general'],
     addedDate: '2024-01-15',
-    isFavorite: true,
+    isUserFavorite: true,
     imageUrl: 'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=400'
   },
   {
@@ -22,7 +22,7 @@ export const mockAITools: AITool[] = [
     usageCount: 98,
     tags: ['reasoning', 'analysis', 'writing'],
     addedDate: '2024-01-20',
-    isFavorite: true,
+    isUserFavorite: true,
     imageUrl: 'https://images.pexels.com/photos/8386434/pexels-photo-8386434.jpeg?auto=compress&cs=tinysrgb&w=400'
   },
   {
@@ -34,7 +34,7 @@ export const mockAITools: AITool[] = [
     usageCount: 76,
     tags: ['art', 'design', 'creative'],
     addedDate: '2024-01-10',
-    isFavorite: false,
+    isUserFavorite: false,
     imageUrl: 'https://images.pexels.com/photos/8386422/pexels-photo-8386422.jpeg?auto=compress&cs=tinysrgb&w=400'
   },
   {
@@ -46,7 +46,7 @@ export const mockAITools: AITool[] = [
     usageCount: 203,
     tags: ['coding', 'development', 'productivity'],
     addedDate: '2024-01-05',
-    isFavorite: true,
+    isUserFavorite: true,
     imageUrl: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=400'
   },
   {
@@ -58,7 +58,7 @@ export const mockAITools: AITool[] = [
     usageCount: 67,
     tags: ['writing', 'organization', 'productivity'],
     addedDate: '2024-01-25',
-    isFavorite: false,
+    isUserFavorite: false,
     imageUrl: 'https://images.pexels.com/photos/590016/pexels-photo-590016.jpg?auto=compress&cs=tinysrgb&w=400'
   },
   {
@@ -70,7 +70,7 @@ export const mockAITools: AITool[] = [
     usageCount: 34,
     tags: ['video', 'editing', 'creative'],
     addedDate: '2024-02-01',
-    isFavorite: false,
+    isUserFavorite: false,
     imageUrl: 'https://images.pexels.com/photos/7988086/pexels-photo-7988086.jpeg?auto=compress&cs=tinysrgb&w=400'
   },
   {
@@ -82,7 +82,7 @@ export const mockAITools: AITool[] = [
     usageCount: 42,
     tags: ['voice', 'audio', 'synthesis'],
     addedDate: '2024-01-30',
-    isFavorite: false,
+    isUserFavorite: false,
     imageUrl: 'https://images.pexels.com/photos/6686445/pexels-photo-6686445.jpeg?auto=compress&cs=tinysrgb&w=400'
   },
   {
@@ -94,7 +94,7 @@ export const mockAITools: AITool[] = [
     usageCount: 89,
     tags: ['search', 'research', 'information'],
     addedDate: '2024-02-05',
-    isFavorite: true,
+    isUserFavorite: true,
     imageUrl: 'https://images.pexels.com/photos/5483077/pexels-photo-5483077.jpeg?auto=compress&cs=tinysrgb&w=400'
   }
 ];

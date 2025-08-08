@@ -7,7 +7,7 @@ export interface AITool {
   usageCount: number;
   tags: string[];
   addedDate: string;
-  isFavorite: boolean;
+  isUserFavorite?: boolean;
   imageUrl?: string;
 }
 

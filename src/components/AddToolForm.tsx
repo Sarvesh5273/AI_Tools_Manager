@@ -66,8 +66,17 @@ const AddToolForm: React.FC<AddToolFormProps> = ({ onAddTool, onClose }) => {
         .split(',')
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
-      // Form will be closed by the parent component after successful addition
 
+      
+      await onAddTool({
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        link: formData.link.trim(),
+        category: formData.category.trim(),
+        tags,
+        imageUrl: formData.imageUrl.trim() || undefined
+      });
+      
       // Form will be closed by the parent component after successful addition
     } catch (err) {
       console.error('Failed to add tool:', err);

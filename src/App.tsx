@@ -34,6 +34,7 @@ function AppContent() {
 }
 
 function MainApp() {
+  const { isAdmin } = useAuth();
   const {
     aiTools,
     loading,
@@ -96,7 +97,7 @@ function MainApp() {
         tool.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesCategory = !selectedCategory || tool.category === selectedCategory;
-      const matchesFavorites = !showFavorites || tool.isFavorite;
+      const matchesFavorites = !showFavorites || tool.isUserFavorite;
       
       return matchesSearch && matchesCategory && matchesFavorites;
     });
@@ -246,13 +247,15 @@ function MainApp() {
             )}
           </div>
           
-          <button
-            onClick={() => setShowAddToolForm(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            <Plus className="w-5 h-5" />
-            Add Tool
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowAddToolForm(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <Plus className="w-5 h-5" />
+              Add Tool
+            </button>
+          )}
         </div>
 
         {/* Tools Grid */}
@@ -280,8 +283,9 @@ function MainApp() {
                   tool={tool}
                   onToggleFavorite={handleToggleFavorite}
                   onIncrementUsage={handleIncrementUsage}
-                  onEditTool={handleEditTool}
-                  onDeleteTool={handleDeleteTool}
+                  onEditTool={isAdmin ? handleEditTool : undefined}
+                  onDeleteTool={isAdmin ? handleDeleteTool : undefined}
+                  isAdmin={isAdmin}
                 />
               </div>
             ))}
@@ -290,7 +294,7 @@ function MainApp() {
       </main>
 
       {/* Add Tool Form Modal */}
-      {showAddToolForm && (
+      {showAddToolForm && isAdmin && (
         <AddToolForm
           onAddTool={handleAddTool}
           onClose={() => setShowAddToolForm(false)}
@@ -298,7 +302,7 @@ function MainApp() {
       )}
 
       {/* Edit Tool Form Modal */}
-      {showEditToolForm && editingTool && (
+      {showEditToolForm && editingTool && isAdmin && (
         <EditToolForm
           toolToEdit={editingTool}
           onUpdateTool={handleUpdateTool}

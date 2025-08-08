@@ -110,14 +110,13 @@ export interface DatabaseAITool {
   usage_count: number;
   tags: string[];
   added_date: string;
-  is_favorite: boolean;
   image_url?: string;
   created_at: string;
   updated_at: string;
 }
 
 // Transform database record to app format
-export const transformDatabaseTool = (dbTool: DatabaseAITool) => ({
+export const transformDatabaseTool = (dbTool: DatabaseAITool, isUserFavorite = false) => ({
   id: dbTool.id,
   name: dbTool.name,
   description: dbTool.description,
@@ -126,7 +125,7 @@ export const transformDatabaseTool = (dbTool: DatabaseAITool) => ({
   usageCount: dbTool.usage_count,
   tags: dbTool.tags,
   addedDate: dbTool.added_date,
-  isFavorite: dbTool.is_favorite,
+  isUserFavorite,
   imageUrl: dbTool.image_url
 });
 
@@ -139,6 +138,5 @@ export const transformAppTool = (appTool: any) => ({
   usage_count: appTool.usageCount || 0,
   tags: appTool.tags || [],
   added_date: appTool.addedDate || new Date().toISOString().split('T')[0],
-  is_favorite: appTool.isFavorite || false,
   image_url: appTool.imageUrl || null
 });

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase, transformDatabaseTool, transformAppTool, DatabaseAITool, isSupabaseConfigured, supabaseConnectionError } from '../lib/supabase';
 import { mockAITools } from '../data/mockData';
 import { AITool } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 export const useAITools = () => {
+  const { user } = useAuth();
   const [aiTools, setAiTools] = useState<AITool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,24 @@ export const useAITools = () => {
         return;
       }
 
-      const transformedTools = data?.map(transformDatabaseTool) || [];
+      let transformedTools: AITool[] = [];
+      
+      if (data && user) {
+        // Fetch user's favorite tools
+        const { data: favoriteData } = await supabase
+          .from('user_favorite_tools')
+          .select('tool_id')
+          .eq('user_id', user.id);
+        
+        const favoriteToolIds = new Set(favoriteData?.map(fav => fav.tool_id) || []);
+        
+        transformedTools = data.map(tool => 
+          transformDatabaseTool(tool, favoriteToolIds.has(tool.id))
+        );
+      } else {
+        transformedTools = data?.map(tool => transformDatabaseTool(tool)) || [];
+      }
+      
       setAiTools(transformedTools);
       console.log('Successfully loaded tools from database');
     } catch (err) {
@@ -72,7 +91,7 @@ export const useAITools = () => {
           category: toolData.category,
           tags: toolData.tags,
           usageCount: 0,
-          isFavorite: false,
+          isUserFavorite: false,
           addedDate: new Date().toISOString().split('T')[0],
           imageUrl: toolData.imageUrl
         };
@@ -85,7 +104,6 @@ export const useAITools = () => {
       const newTool = transformAppTool({
         ...toolData,
         usageCount: 0,
-        isFavorite: false,
         addedDate: new Date().toISOString().split('T')[0]
       });
 
@@ -99,7 +117,7 @@ export const useAITools = () => {
         throw insertError;
       }
 
-      const transformedTool = transformDatabaseTool(data as DatabaseAITool);
+      const transformedTool = transformDatabaseTool(data as DatabaseAITool, false);
       setAiTools(prev => [transformedTool, ...prev]);
       
       return transformedTool;
@@ -134,7 +152,19 @@ export const useAITools = () => {
         throw updateError;
       }
 
-      const transformedTool = transformDatabaseTool(data as DatabaseAITool);
+      // Check if this tool is in user's favorites
+      let isUserFavorite = false;
+      if (user) {
+        const { data: favoriteData } = await supabase
+          .from('user_favorite_tools')
+          .select('tool_id')
+          .eq('user_id', user.id)
+          .eq('tool_id', updatedTool.id)
+          .single();
+        isUserFavorite = !!favoriteData;
+      }
+      
+      const transformedTool = transformDatabaseTool(data as DatabaseAITool, isUserFavorite);
       setAiTools(prev => prev.map(tool => 
         tool.id === updatedTool.id ? transformedTool : tool
       ));
@@ -176,31 +206,45 @@ export const useAITools = () => {
   const toggleFavorite = async (id: string) => {
     try {
       const tool = aiTools.find(t => t.id === id);
-      if (!tool) return;
+      if (!tool || !user) return;
 
       // If not authenticated or Supabase not configured, update local state only
       if (!shouldFetchFromDatabase) {
         setAiTools(prev => prev.map(t => 
-          t.id === id ? { ...t, isFavorite: !t.isFavorite } : t
+          t.id === id ? { ...t, isUserFavorite: !t.isUserFavorite } : t
         ));
         console.warn('Favorite toggled in local state only - database not available');
         return;
       }
 
-      const { data, error: updateError } = await supabase
-        .from('ai_tools')
-        .update({ is_favorite: !tool.isFavorite })
-        .eq('id', id)
-        .select()
-        .single();
+      if (tool.isUserFavorite) {
+        // Remove from favorites
+        const { error: deleteError } = await supabase
+          .from('user_favorite_tools')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('tool_id', id);
 
-      if (updateError) {
-        throw updateError;
+        if (deleteError) {
+          throw deleteError;
+        }
+      } else {
+        // Add to favorites
+        const { error: insertError } = await supabase
+          .from('user_favorite_tools')
+          .insert({
+            user_id: user.id,
+            tool_id: id
+          });
+
+        if (insertError) {
+          throw insertError;
+        }
       }
 
-      const transformedTool = transformDatabaseTool(data as DatabaseAITool);
+      // Update local state
       setAiTools(prev => prev.map(t => 
-        t.id === id ? transformedTool : t
+        t.id === id ? { ...t, isUserFavorite: !t.isUserFavorite } : t
       ));
     } catch (err) {
       console.error('Error toggling favorite:', err);
@@ -234,7 +278,19 @@ export const useAITools = () => {
         throw updateError;
       }
 
-      const transformedTool = transformDatabaseTool(data as DatabaseAITool);
+      // Check if this tool is in user's favorites
+      let isUserFavorite = false;
+      if (user) {
+        const { data: favoriteData } = await supabase
+          .from('user_favorite_tools')
+          .select('tool_id')
+          .eq('user_id', user.id)
+          .eq('tool_id', id)
+          .single();
+        isUserFavorite = !!favoriteData;
+      }
+      
+      const transformedTool = transformDatabaseTool(data as DatabaseAITool, isUserFavorite);
       setAiTools(prev => prev.map(t => 
         t.id === id ? transformedTool : t
       ));
@@ -247,7 +303,7 @@ export const useAITools = () => {
   // Initialize data on mount
   useEffect(() => {
     fetchTools();
-  }, []);
+  }, [user]); // Re-fetch when user changes to get their favorites
 
   return {
     aiTools,

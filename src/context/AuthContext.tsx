@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithGitHub: () => Promise<void>;
@@ -19,7 +20,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Check if user has admin role
+  const checkUserRole = async (userId: string): Promise<boolean> => {
+    if (!isSupabaseConfigured) {
+      return false;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.log('No role found for user, defaulting to regular user');
+        return false;
+      }
+
+      return data?.role === 'admin';
+    } catch (error) {
+      console.error('Error checking user role:', error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     // Only initialize auth if Supabase is configured
@@ -37,6 +64,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setSession(session);
           setUser(session?.user ?? null);
+          
+          // Check admin status if user exists
+          if (session?.user) {
+            const adminStatus = await checkUserRole(session.user.id);
+            setIsAdmin(adminStatus);
+          } else {
+            setIsAdmin(false);
+          }
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
@@ -53,6 +88,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Check admin status if user exists
+        if (session?.user) {
+          const adminStatus = await checkUserRole(session.user.id);
+          setIsAdmin(adminStatus);
+        } else {
+          setIsAdmin(false);
+        }
+        
         setLoading(false);
       }
     );
@@ -70,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/AI_Tools_Manager/#/auth/callback`
+          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}#/auth/callback`
         }
       });
       
@@ -94,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/AI_Tools_Manager/#/auth/callback`
+          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}#/auth/callback`
         }
       });
       
@@ -140,7 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
-          emailredirectTo: `${window.location.origin}/AI_Tools_Manager/#/auth/callback`
+          emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}#/auth/callback`
         }
       });
       
@@ -207,6 +251,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     isAuthenticated: !!user,
+    isAdmin,
     loading,
     signInWithGoogle,
     signInWithGitHub,
