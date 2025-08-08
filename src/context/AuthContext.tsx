@@ -34,9 +34,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
+        console.log('Error checking user role:', error);
+        return false;
+      }
+
+      if (!data) {
         console.log('No role found for user, defaulting to regular user');
         return false;
       }
